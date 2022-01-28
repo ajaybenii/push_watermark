@@ -22,8 +22,8 @@ from pydantic import BaseModel
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import StreamingResponse
 
-import logfile
-from logfile import logger
+# import logfile
+# from logfile import #logger
 
 
 SQUARE_YARDS_LOGO = Image.open('./slogo.png')
@@ -99,19 +99,19 @@ async def get_image_properties(URL, width_percentage=None, position=None):
         filename = filename.strip()
     except Exception as e:
         print(e)
-        logger.info("Error: HTTPException(status_code=406, detail=Not a valid URL)")
+        ##logger.info("Error: HTTPException(status_code=406, detail=Not a valid URL)")
         raise HTTPException(status_code=406, detail="Not a valid URL")
  
     if URL.lower().endswith((".jpg", ".png", ".jpeg", ".gif", ".webp")) == False:
-        logger.info("Error: HTTPException(status_code=406, detail=Not a valid URL)")
+        ##logger.info("Error: HTTPException(status_code=406, detail=Not a valid URL)")
         raise HTTPException(status_code=406, detail="Not a valid URL")
  
     if width_percentage and width_percentage > 1:
-        logger.info("Error: HTTPException(status_code=406, detail=Please chose the value of width_percentage between 0.01 and 1.0)")
+        ##logger.info("Error: HTTPException(status_code=406, detail=Please chose the value of width_percentage between 0.01 and 1.0)")
         raise HTTPException(status_code=406, detail="Please chose the value of width_percentage between 0.01 and 1.0")
  
     if position and position not in POSI_LIST:
-        logger.info("Error: HTTPException(status_code=406, detail=Please chose a value of position from")
+        ##.info("Error: HTTPException(status_code=406, detail=Please chose a value of position from")
         raise HTTPException(status_code=406, detail="Please chose a value of position from: " + ", ".join(POSI_LIST))
  
    
@@ -128,7 +128,7 @@ async def get_image_properties(URL, width_percentage=None, position=None):
                 contents = await resp.read()
  
         if contents == None:
-            logger.info("Error: HTTPException(status_code=406, detail=No image found.")
+            #logger.info("Error: HTTPException(status_code=406, detail=No image found.")
             raise HTTPException(status_code=406, detail="No image found.")
  
         original_image = Image.open(BytesIO(contents))
@@ -138,7 +138,7 @@ async def get_image_properties(URL, width_percentage=None, position=None):
 
     except Exception as e:
         print(e)
-        logger.info("Error: HTTPException(status_code=400, detail= Error while reading the image. Make sure that the URL is a correct image link.")
+        #logger.info("Error: HTTPException(status_code=400, detail= Error while reading the image. Make sure that the URL is a correct image link.")
         raise HTTPException(status_code=400, detail="Error while reading the image. Make sure that the URL is a correct image link.")
     
     print(filename, original_image)
@@ -182,12 +182,12 @@ def paste_logo(original_image, width_percentage, logo, position="centre"):
             top = original_image.size[1] - logo_height
             left = (original_image.size[0]//2) - (logo_width//2)
             original_image.paste(logo, (left, top), mask=logo)
-        logger.info("logo added successfully")
+        #logger.info("logo added successfully")
         return original_image
     
     except Exception as e:
         print(e)
-        logger.info("logo adding unsuccessful")
+        #logger.info("logo adding unsuccessful")
         pass 
  
 def get_format(filename):
@@ -218,12 +218,12 @@ def get_final_image(image_details, original_image, width_percentage, logo, posit
         original_image = paste_logo(original_image, width_percentage, logo, position)
         format_ = get_format(filename)
         quality = 70
-        logger.info("compression successful")
+        #logger.info("compression successful")
         return original_image, format_, quality
 
     except Exception as e:
         print(e)
-        logger.info("compression unsuccessful")    
+        #logger.info("compression unsuccessful")    
         pass
 
 
@@ -436,12 +436,12 @@ async def get_body(URL):
 
         #return StreamingResponse(buffer, media_type=get_content_type(format_))
         original_image = image
-        logger.info("Enhancement Successful")
+        #logger.info("Enhancement Successful")
         return original_image
 
     except Exception as e:
         print(e)
-        logger.info("Enhancement Unsuccessful")
+        #logger.info("Enhancement Unsuccessful")
         pass
 
 
@@ -640,9 +640,9 @@ async def enhancement_logo_without_ext(image_details: ImageDetails):
     """
     URL1 = image_details.url_
     URL = image_details.url_
-    logger.info(URL)
+    #logger.info(URL)
     #total_req_ext(1)
-    #logger.info("Total number of request without ext: {}".format(total_request_extension.count(1)))
+    ##logger.info("Total number of request without ext: {}".format(total_request_extension.count(1)))
     response = requests.get(URL)
     #print(response)
     img = Image.open(BytesIO(response.content))
@@ -676,7 +676,7 @@ async def enhancement_logo_without_ext(image_details: ImageDetails):
             
     except Exception as e:
             print(e)
-            logger.info("Error: HTTPException(status_code=500, detail= Error while processing the image.")
+            #logger.info("Error: HTTPException(status_code=500, detail= Error while processing the image.")
             raise HTTPException(status_code=500, detail="Error while processing the image.")
     buf.seek(0)
 
@@ -688,9 +688,9 @@ async def enhancement_logo_without_ext(image_details: ImageDetails):
     
     #print(filename)
     
-    logger.info("Result: Successful")
+    #logger.info("Result: Successful")
     #s1=sample_list_ext(1)
-    #logger.info("Successful Response without ext: {}".format(sample_list_for_without_exten.count(1)))
+    ##logger.info("Successful Response without ext: {}".format(sample_list_for_without_exten.count(1)))
     return StreamingResponse(buf, media_type=get_content_type(format_), headers={'Content-Disposition': 'inline; filename="%s"' %(filename,)})
 
 
@@ -705,9 +705,9 @@ async def enhancement_logo_without_ext(image_details: ImageDetails):
     """
     URL1 = image_details.url_
     URL = image_details.url_
-    logger.info(URL)
+    #logger.info(URL)
     #total_req_ext2(1)
-    #logger.info("Total number of request without ext2: {}".format(total_request_extension2.count(1)))
+    ##logger.info("Total number of request without ext2: {}".format(total_request_extension2.count(1)))
     response = requests.get(URL)
     #print(response)
     img = Image.open(BytesIO(response.content))
@@ -742,13 +742,13 @@ async def enhancement_logo_without_ext(image_details: ImageDetails):
             
     except Exception as e:
             print(e)
-            logger.info("Error: HTTPException(status_code=500, detail= Error while processing the image.")
+            #logger.info("Error: HTTPException(status_code=500, detail= Error while processing the image.")
             raise HTTPException(status_code=500, detail="Error while processing the image.")
     buf.seek(0)
     
-    logger.info("Result: Successful")
+    #logger.info("Result: Successful")
     #s1=sample_list_ext2(1)
-    #logger.info("Successful Response without ext2: {}".format(sample_list_for_without_exten2.count(1)))
+    ##logger.info("Successful Response without ext2: {}".format(sample_list_for_without_exten2.count(1)))
     return StreamingResponse(buf, media_type=get_content_type(format_), headers={'Content-Disposition': 'inline; filename="%s"' %(filename,)})
 
 @app.post("/enhancement_logo")
@@ -761,9 +761,9 @@ async def enhancement_logo(image_details: ImageDetails):
     4. position: position of logo on image.
     """
     URL = image_details.url_
-    logger.info(URL)
+    #logger.info(URL)
     total_req_logo_enhancement(1)
-    logger.info("Total number of request logo enhancement: {}".format(total_request_logo_enhancement.count(1)))
+    #logger.info("Total number of request logo enhancement: {}".format(total_request_logo_enhancement.count(1)))
     width_percentage = image_details.width_percentage
 
     position = image_details.position
@@ -790,13 +790,13 @@ async def enhancement_logo(image_details: ImageDetails):
             
     except Exception as e:
             print(e)
-            logger.info("Error: HTTPException(status_code=500, detail= Error while processing the image.)")
+            #logger.info("Error: HTTPException(status_code=500, detail= Error while processing the image.)")
             raise HTTPException(status_code=500, detail="Error while processing the image.")
     buf.seek(0)
 
-    logger.info("Result: Successful")
+    #logger.info("Result: Successful")
     sample_list_logo_enhancement(1)
-    logger.info("Successful Response logo enhancement: {}".format(sample_list_for_logo_enhancement.count(1)))
+    #logger.info("Successful Response logo enhancement: {}".format(sample_list_for_logo_enhancement.count(1)))
     return StreamingResponse(buf, media_type=get_content_type(format_), headers={'Content-Disposition': 'inline; filename="%s"' %(filename,)})
 
 @app.post("/addWatermark")
@@ -831,11 +831,11 @@ async def add_watermark(image_details: ImageDetails):
             
     except Exception as e:
             print(e)
-            logger.info("Error: HTTPException(status_code=500, detail=Error while processing the image.")
+            #logger.info("Error: HTTPException(status_code=500, detail=Error while processing the image.")
             raise HTTPException(status_code=500, detail="Error while processing the image.")
     buf.seek(0)
 
-    logger.info("Result: Successful")
+    #logger.info("Result: Successful")
     return StreamingResponse(buf, media_type=get_content_type(format_), headers={'Content-Disposition': 'inline; filename="%s"' %(filename,)})
  
  
@@ -865,10 +865,10 @@ async def add_watermarkIC(image_details: ImageDetails):
             original_image.save(buf, format=format_, quality=quality, optimize=True)
     except Exception as e:
             print(e)
-            logger.info("Error: HTTPException(status_code=500, detail= Error while processing the image.")
+            #logger.info("Error: HTTPException(status_code=500, detail= Error while processing the image.")
             raise HTTPException(status_code=500, detail="Error while processing the image.")
     buf.seek(0)
-    logger.info("Result1: Successful")
+    #logger.info("Result1: Successful")
     return StreamingResponse(buf, media_type=get_content_type(format_), headers={'Content-Disposition': 'inline; filename="%s"' %(filename,)})
 
 
