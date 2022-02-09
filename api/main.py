@@ -693,6 +693,42 @@ async def enhancement_logo_without_ext(image_details: ImageDetails):
     ##logger.info("Successful Response without ext: {}".format(sample_list_for_without_exten.count(1)))
     return StreamingResponse(buf, media_type=get_content_type(format_), headers={'Content-Disposition': 'inline; filename="%s"' %(filename,)})
 
+@app.post("/sqy_extension")
+async def extension(check_image: URL): 
+
+    '''This function get image URL from user and tell 
+    the image extension as a output
+    '''
+    URL1 = check_image.url_
+    filename = extract_filename(URL1)
+
+    filename = filename.strip()
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(URL1) as resp:
+            contents = await resp.read()
+  
+    async with aiohttp.ClientSession() as session:
+        async with session.get(URL1) as resp:
+            contents = await resp.read()
+
+    if contents == None:
+        raise HTTPException(status_code=406, detail="No image found.")
+
+    try:
+        image = Image.open(BytesIO(contents))
+        result1 = "."+image.format.lower()
+        URL11 = URL1 + result1
+
+    except Exception:
+        raise HTTPException(status_code=406, detail="Not a valid URL")
+
+    if URL11.lower().endswith((".jpg", ".png", ".jpeg", ".gif", ".webp",".jfif")) == False:
+        raise HTTPException(status_code=406, detail="Not a valid URL")
+
+
+    output1 = result1   
+    return ({"ext_":output1})
 
 @app.post("/enhancement_logo_without_ext2")
 async def enhancement_logo_without_ext(image_details: ImageDetails):
