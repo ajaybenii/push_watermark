@@ -699,29 +699,19 @@ async def extension(check_image: URL):
     '''This function get image URL from user and tell 
     the image extension as a output
     '''
-    URL1 = check_image.url_
-    filename = extract_filename(URL1)
+    URL = check_image.url_
+    response = requests.get(URL)
 
-    filename = filename.strip()
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(URL1) as resp:
-            contents = await resp.read()
-  
-    async with aiohttp.ClientSession() as session:
-        async with session.get(URL1) as resp:
-            contents = await resp.read()
-
-    if contents == None:
-        raise HTTPException(status_code=406, detail="No image found.")
+    image_bytes = io.BytesIO(response.content)
+    image = PIL.Image.open(image_bytes) 
 
     try:
-        image = Image.open(BytesIO(contents))
         result1 = "."+image.format.lower()
-        URL11 = URL1 + result1
+        URL11 = URL + result1
 
     except Exception:
         raise HTTPException(status_code=406, detail="Not a valid URL")
+
 
     if URL11.lower().endswith((".jpg", ".png", ".jpeg", ".gif", ".webp",".jfif")) == False:
         raise HTTPException(status_code=406, detail="Not a valid URL")
