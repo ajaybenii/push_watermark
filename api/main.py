@@ -379,7 +379,7 @@ async def get_body(URL):
             return 1 if brightness == 255 else brightness / scale
         
         print("after enhn b=",calculate_brightness(image))
-        
+        format_ =image.format
         image.save("original_img."+format_)
         img_s = cv2.imread("original_img."+format_)
         img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
