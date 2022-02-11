@@ -379,6 +379,7 @@ async def get_body(URL):
             return 1 if brightness == 255 else brightness / scale
         
         print("after enhn b=",calculate_brightness(image))
+        image = PIL.Image.open(image_bytes)
         format_1 =image.format
         image.save("original_img."+format_1)
         img_s = cv2.imread("original_img."+format_1)
