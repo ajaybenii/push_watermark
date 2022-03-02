@@ -5,7 +5,7 @@ import aiohttp
 import requests
 from enum import Enum
 from io import BytesIO
-from typing import Optional
+from typing import ItemsView, List, Optional, final
 from urllib.parse import urlparse
 
 
