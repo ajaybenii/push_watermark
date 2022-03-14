@@ -446,189 +446,189 @@ async def get_body(URL):
         pass
 
 
-# @app.get("/enhancement")
-# async def enhancement(Enhance_image: str):
-#     """ 
-#     #### The endpoint takes image url as inputs in the form of JSON, enhance the image and then return the enhanced image.\n
-#     1. Enhance_image: Url of the image.
-#     """
+@app.get("/enhancement")
+async def enhancement(Enhance_image: str):
+    """ 
+    #### The endpoint takes image url as inputs in the form of JSON, enhance the image and then return the enhanced image.\n
+    1. Enhance_image: Url of the image.
+    """
 
-#     #print(Enhance_image)
-#     response = requests.get(Enhance_image)
-#     image_bytes = io.BytesIO(response.content)
-#     #print(image_bytes)
-#     image = PIL.Image.open(image_bytes)
-#     #print(image)
-#     filename = Enhance_image
-#     #print(filename)
-#     #this function get the format type of input image
-#     def get_format(filename):
-#         format_ = filename.split(".")[-1]
-#         if format_.lower() == "jpg":
-#             format_ = "jpeg"
-#         elif format_.lower == "webp":
-#             format_ = "WebP"
+    #print(Enhance_image)
+    response = requests.get(Enhance_image)
+    image_bytes = io.BytesIO(response.content)
+    #print(image_bytes)
+    image = PIL.Image.open(image_bytes)
+    #print(image)
+    filename = Enhance_image
+    #print(filename)
+    #this function get the format type of input image
+    def get_format(filename):
+        format_ = filename.split(".")[-1]
+        if format_.lower() == "jpg":
+            format_ = "jpeg"
+        elif format_.lower == "webp":
+            format_ = "WebP"
     
-#         return format_
+        return format_
  
    
-#     #this function for gave the same type of format to output
-#     def get_content_type(format_):
-#         type_ = "image/jpeg"
-#         if format_ == "gif":
-#             type_ = "image/gif"
-#         elif format_ == "webp":
-#             type_ = "image/webp"
-#         elif format_ == "png":
-#             type_ = "image/png"
-#         #print(type_)
-#         return type_
+    #this function for gave the same type of format to output
+    def get_content_type(format_):
+        type_ = "image/jpeg"
+        if format_ == "gif":
+            type_ = "image/gif"
+        elif format_ == "webp":
+            type_ = "image/webp"
+        elif format_ == "png":
+            type_ = "image/png"
+        #print(type_)
+        return type_
 
-#     format_ = get_format(filename)#here format_ store the type of image by filename
+    format_ = get_format(filename)#here format_ store the type of image by filename
     
     
-#     #This function calculate the brightness of input image 
-#     def calculate_brightness(image):
-#         greyscale_image = image.convert('L')
-#         histogram = greyscale_image.histogram()
-#         pixels = sum(histogram)
-#         brightness = scale = len(histogram)
+    #This function calculate the brightness of input image 
+    def calculate_brightness(image):
+        greyscale_image = image.convert('L')
+        histogram = greyscale_image.histogram()
+        pixels = sum(histogram)
+        brightness = scale = len(histogram)
 
-#         for index in range(0, scale):
-#             ratio = histogram[index] / pixels
-#             brightness += ratio * (-scale + index)
+        for index in range(0, scale):
+            ratio = histogram[index] / pixels
+            brightness += ratio * (-scale + index)
 
-#         return 1 if brightness == 255 else brightness / scale
+        return 1 if brightness == 255 else brightness / scale
     
-#     print(calculate_brightness(image))#here print the float(calculate brightnes nummber)
+    print(calculate_brightness(image))#here print the float(calculate brightnes nummber)
     
-#     image.save("original_img."+format_)
-#     img_s = cv2.imread("original_img."+format_)
-#     img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
-#     saturation = img_hsv[:, :, 1].mean()
-#     print("original saturation",saturation)
+    image.save("original_img."+format_)
+    img_s = cv2.imread("original_img."+format_)
+    img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
+    saturation = img_hsv[:, :, 1].mean()
+    print("original saturation",saturation)
                   
-#     #______Here apply the Brightness and Color on image automatically according to there condition_____
-#     # if (calculate_brightness(image) > 0.6 and calculate_brightness(image) < 0.7 ): 
+    #______Here apply the Brightness and Color on image automatically according to there condition_____
+    # if (calculate_brightness(image) > 0.6 and calculate_brightness(image) < 0.7 ): 
         
-#     #     enhancer_bright = ImageEnhance.Brightness(image)
-#     #     image = enhancer_bright.enhance(1.2)
-#     #     #print("bright 6")
-#     #     if image:
-#     #         enhancer_colors = ImageEnhance.Color(image)
-#     #         image = enhancer_colors.enhance(1.4)
-#     #         #print("color 6")
+    #     enhancer_bright = ImageEnhance.Brightness(image)
+    #     image = enhancer_bright.enhance(1.2)
+    #     #print("bright 6")
+    #     if image:
+    #         enhancer_colors = ImageEnhance.Color(image)
+    #         image = enhancer_colors.enhance(1.4)
+    #         #print("color 6")
      
 
-#     if (calculate_brightness(image) > 0.5 and calculate_brightness(image) < 0.55): 
+    if (calculate_brightness(image) > 0.5 and calculate_brightness(image) < 0.55): 
             
-#         enhancer_bright = ImageEnhance.Brightness(image)
-#         image = enhancer_bright.enhance(1.2)
-#         print("bright 5")
-#         if image:
-#             enhancer_colors = ImageEnhance.Color(image)
-#             image = enhancer_colors.enhance(1.4)
-#             #print("color 5")
+        enhancer_bright = ImageEnhance.Brightness(image)
+        image = enhancer_bright.enhance(1.2)
+        print("bright 5")
+        if image:
+            enhancer_colors = ImageEnhance.Color(image)
+            image = enhancer_colors.enhance(1.4)
+            #print("color 5")
 
 
 
-#     if (calculate_brightness(image)  > 0.4 and calculate_brightness(image) < 0.5 ):
+    if (calculate_brightness(image)  > 0.4 and calculate_brightness(image) < 0.5 ):
         
-#         enhancer_bright = ImageEnhance.Brightness(image)
-#         image = enhancer_bright.enhance(1.2)
-#         print("bright 4")
-#         if image:
-#             enhancer_colors = ImageEnhance.Color(image)
-#             image = enhancer_colors.enhance(1.4)
-#             #print("color 4")
+        enhancer_bright = ImageEnhance.Brightness(image)
+        image = enhancer_bright.enhance(1.2)
+        print("bright 4")
+        if image:
+            enhancer_colors = ImageEnhance.Color(image)
+            image = enhancer_colors.enhance(1.4)
+            #print("color 4")
 
 
-#     if (calculate_brightness(image)  > 0.3 and calculate_brightness(image) < 0.4):
+    if (calculate_brightness(image)  > 0.3 and calculate_brightness(image) < 0.4):
             
-#         enhancer_bright = ImageEnhance.Brightness(image)
-#         image = enhancer_bright.enhance(1.5)
-#         print("bright 3")
-#         if image:
-#             enhancer_colors = ImageEnhance.Color(image)
-#             image = enhancer_colors.enhance(1.3)
-#             #print("color 3")
+        enhancer_bright = ImageEnhance.Brightness(image)
+        image = enhancer_bright.enhance(1.5)
+        print("bright 3")
+        if image:
+            enhancer_colors = ImageEnhance.Color(image)
+            image = enhancer_colors.enhance(1.3)
+            #print("color 3")
 
 
-#     if (calculate_brightness(image)  > 0.2 and calculate_brightness(image) < 0.3 ):
+    if (calculate_brightness(image)  > 0.2 and calculate_brightness(image) < 0.3 ):
         
-#         enhancer_bright = ImageEnhance.Brightness(image)
-#         image = enhancer_bright.enhance(1.8)
-#         print("bright 2")
-#         if image:
-#             enhancer_colors = ImageEnhance.Color(image)
-#             image = enhancer_colors.enhance(1.5)
-#             #print("color 2")
+        enhancer_bright = ImageEnhance.Brightness(image)
+        image = enhancer_bright.enhance(1.8)
+        print("bright 2")
+        if image:
+            enhancer_colors = ImageEnhance.Color(image)
+            image = enhancer_colors.enhance(1.5)
+            #print("color 2")
 
 
     
-#     def calculate_brightness(image):
-#         greyscale_image = image.convert('L')
-#         histogram = greyscale_image.histogram()
-#         pixels = sum(histogram)
-#         brightness = scale = len(histogram)
+    def calculate_brightness(image):
+        greyscale_image = image.convert('L')
+        histogram = greyscale_image.histogram()
+        pixels = sum(histogram)
+        brightness = scale = len(histogram)
 
-#         for index in range(0, scale):
-#             ratio = histogram[index] / pixels
-#             brightness += ratio * (-scale + index)
+        for index in range(0, scale):
+            ratio = histogram[index] / pixels
+            brightness += ratio * (-scale + index)
 
-#         return 1 if brightness == 255 else brightness / scale
+        return 1 if brightness == 255 else brightness / scale
     
-#     print("after enhn b=",calculate_brightness(image))
+    print("after enhn b=",calculate_brightness(image))
     
-#     if saturation >100 and saturation < 120 :
-#         enhancer_colors = ImageEnhance.Color(image)
-#         image = enhancer_colors.enhance(0.8)
-#         # if image:
-#         #     enhancer_colors = ImageEnhance.Contrast(image)
-#         #     image = enhancer_colors.enhance(0.9)
-#         #print("color 6")
-#         #print("color 6")
-#         image.save("original_img."+format_)
-#         img_s = cv2.imread("original_img."+format_)
-#         img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
-#         saturation = img_hsv[:, :, 1].mean()
-#         print("after apply 100 =",saturation)
+    if saturation >100 and saturation < 120 :
+        enhancer_colors = ImageEnhance.Color(image)
+        image = enhancer_colors.enhance(0.8)
+        # if image:
+        #     enhancer_colors = ImageEnhance.Contrast(image)
+        #     image = enhancer_colors.enhance(0.9)
+        #print("color 6")
+        #print("color 6")
+        image.save("original_img."+format_)
+        img_s = cv2.imread("original_img."+format_)
+        img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
+        saturation = img_hsv[:, :, 1].mean()
+        print("after apply 100 =",saturation)
     
-#     if saturation >120 and saturation < 150 :
-#         enhancer_colors = ImageEnhance.Color(image)
-#         image = enhancer_colors.enhance(0.75)
-#         # if image:
-#         #     enhancer_colors = ImageEnhance.Contrast(image)
-#         #     image = enhancer_colors.enhance(0.9)
-#         #print("color 6")
-#         #print("color 6")
-#         image.save("original_img."+format_)
-#         img_s = cv2.imread("original_img."+format_)
-#         img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
-#         saturation = img_hsv[:, :, 1].mean()
-#         print("after apply 120=",saturation)
+    if saturation >120 and saturation < 150 :
+        enhancer_colors = ImageEnhance.Color(image)
+        image = enhancer_colors.enhance(0.75)
+        # if image:
+        #     enhancer_colors = ImageEnhance.Contrast(image)
+        #     image = enhancer_colors.enhance(0.9)
+        #print("color 6")
+        #print("color 6")
+        image.save("original_img."+format_)
+        img_s = cv2.imread("original_img."+format_)
+        img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
+        saturation = img_hsv[:, :, 1].mean()
+        print("after apply 120=",saturation)
 
 
-#     if saturation >150 :
-#         enhancer_colors = ImageEnhance.Color(image)
-#         image = enhancer_colors.enhance(0.6)
-#         # if image:
-#         #     enhancer_colors = ImageEnhance.Contrast(image)
-#         #     image = enhancer_colors.enhance(0.9)
-#         #print("color 6")
-#         #print("color 6")
-#         image.save("original_img."+format_)
-#         img_s = cv2.imread("original_img."+format_)
-#         img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
-#         saturation = img_hsv[:, :, 1].mean()
-#         print("after apply 150= ",saturation)
+    if saturation >150 :
+        enhancer_colors = ImageEnhance.Color(image)
+        image = enhancer_colors.enhance(0.6)
+        # if image:
+        #     enhancer_colors = ImageEnhance.Contrast(image)
+        #     image = enhancer_colors.enhance(0.9)
+        #print("color 6")
+        #print("color 6")
+        image.save("original_img."+format_)
+        img_s = cv2.imread("original_img."+format_)
+        img_hsv = cv2.cvtColor(img_s, cv2.COLOR_BGR2HSV)
+        saturation = img_hsv[:, :, 1].mean()
+        print("after apply 150= ",saturation)
 
-#     buffer = BytesIO()
-#     image.save(buffer, format=format_, quality=70)
-#     image.show()
-#     buffer.seek(0)
+    buffer = BytesIO()
+    image.save(buffer, format=format_, quality=70)
+    image.show()
+    buffer.seek(0)
 
-#     return StreamingResponse(buffer, media_type=get_content_type(format_))
+    return StreamingResponse(buffer, media_type=get_content_type(format_))
 
 class URL1(BaseModel):
     url_: List[str] = []
