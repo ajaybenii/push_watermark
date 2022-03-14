@@ -217,7 +217,7 @@ def get_final_image(image_details, original_image, width_percentage, logo, posit
     try:
         original_image = paste_logo(original_image, width_percentage, logo, position)
         format_ = get_format(filename)
-        quality = 70
+        quality = 90
         #logger.info("compression successful")
         return original_image, format_, quality
 
@@ -870,9 +870,9 @@ async def enhancement_logo_without_ext(image_details: ImageDetails):
             frames[0].save(buf, save_all=True, append_images=frames[1:], format=format_, quality=quality, optimize=True)
         elif format_ == 'png':
             format_ = 'webp'
-            original_image.save(buf, format=format_, quality = 70, optimize=True)
+            original_image.save(buf, format=format_, quality = 90, optimize=True)
         else:
-            original_image.save(buf, format=format_, quality = 70, optimize=True)
+            original_image.save(buf, format=format_, quality = 90, optimize=True)
 
             
     except Exception as e:
@@ -962,9 +962,9 @@ async def enhancement_logo_without_ext(image_details: ImageDetails):
             frames[0].save(buf, save_all=True, append_images=frames[1:], format=format_, quality=quality, optimize=True)
         elif format_ == 'png':
             format_ = 'webp'
-            original_image.save(buf, format=format_, quality = 70, optimize=True)
+            original_image.save(buf, format=format_, quality = 90, optimize=True)
         else:
-            original_image.save(buf, format=format_, quality = 70, optimize=True)
+            original_image.save(buf, format=format_, quality = 90, optimize=True)
 
             
     except Exception as e:
