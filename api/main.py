@@ -445,7 +445,182 @@ async def get_body(URL):
         #logger.info("Enhancement Unsuccessful")
         pass
 
+@app.get("/watermark_removal")
+async def enhancement(watermark_image: str):
+    
+    parsed = urlparse(watermark_image)
+    print(os.path.basename(parsed.path))
 
+
+    response = requests.get(watermark_image)
+    image_bytes = io.BytesIO(response.content)
+    original_image = Image.open(image_bytes)
+
+    
+    format_1 = original_image.format.lower()
+    filename = watermark_image 
+    
+    if filename.lower().endswith((".jpg", ".png", ".jpeg", ".gif", ".webp")):
+        original_image = Image.open(image_bytes)
+        #this function get the format type of input image
+        def get_format(filename):
+            format_ = filename.split(".")[-1]
+            if format_.lower() == "jpg":
+                format_ = "jpeg"
+            elif format_.lower == "webp":
+                format_ = "WebP"
+        
+            return format_
+    
+    
+        #this function for gave the same type of format to output
+        def get_content_type(format_):
+            type_ = "image/jpeg"
+            if format_ == "gif":
+                type_ = "image/gif"
+            elif format_ == "webp":
+                type_ = "image/webp"
+            elif format_ == "png":
+                type_ = "image/png"
+            #print(type_)
+            return type_
+
+        format_ = get_format(filename)#format_ store the type of image by filename
+
+        
+        if (original_image):
+
+            image_logo = 'api/slogo.png' # logo path
+            logo = Image.open(image_logo).convert("RGBA")
+
+            width_percentage = 0.3
+            position = "centre"
+
+            #create mask of every image according to image size 
+            try:
+                logo_width = int(original_image.size[0]*width_percentage)
+                logo_height = int(logo.size[1]*(logo_width/logo.size[0]))
+
+                if logo_height > original_image.size[1]:
+                    logo_height = original_image.size[1]
+
+                if position == "centre":
+                    logo = logo.resize((logo_width, logo_height))
+
+                    top = (original_image.size[1]//2) - (logo_height//2)
+                    left = (original_image.size[0]//2) - (logo_width//2)
+                    w,h = original_image.size
+                    back_img = Image.new('RGBA', (w,h), 'black')
+                    back_img.paste(logo, (left, top), mask=logo)
+
+                back_img.save("mask.png")
+                
+            except:
+                print("Problem with image")
+
+            original_image = Image.open(image_bytes)
+            original_image.format.lower()
+            path = original_image.save("image."+format_1)
+            
+
+
+            img = cv2.imread("image."+format_1)
+            mask = cv2.imread('mask.png',0)
+            dst = cv2.inpaint(img,mask,3,cv2.INPAINT_TELEA)
+
+            cv2.imwrite(os.path.basename(parsed.path),dst)
+            image1 = Image.open(os.path.basename(parsed.path))
+            
+        
+        buffer = BytesIO()
+        image1.save(buffer, format=format_, quality=100)
+        buffer.seek(0)
+
+        return StreamingResponse(buffer, media_type=get_content_type(format_),headers={'Content-Disposition': 'inline; filename="%s"' %(filename,)})
+
+    else:
+        original_image = Image.open(image_bytes)
+        # image = Image.open(image_bytes)
+
+        format_1 = original_image.format.lower()
+        print(format_1)
+        
+        filename = watermark_image+format_1.lower()
+
+        def get_format(filename):
+            format_ = filename.split(".")[-1]
+            if format_.lower() == "jpg":
+                format_ = "jpeg"
+            elif format_.lower() == "webp":
+                format_ = "WebP"
+        
+            return format_
+    
+    
+        #this function for gave the same type of format to output
+        def get_content_type(format_):
+            type_ = "image/jpeg"
+            if format_ == "gif":
+                type_ = "image/gif"
+            elif format_ == "webp":
+                type_ = "image/webp"
+            elif format_ == "png":
+                type_ = "image/png"
+            #print(type_)
+            return type_
+
+        format_ = get_format(filename)#here format_ store the type of image by filename
+
+        if (original_image):
+
+            image_logo = 'api/slogo.png' # logo path
+            logo = Image.open(image_logo).convert("RGBA")
+
+            width_percentage = 0.3
+            position = "centre"
+
+            #Here we create mask of every image according to image size 
+            try:
+                logo_width = int(original_image.size[0]*width_percentage)
+                logo_height = int(logo.size[1]*(logo_width/logo.size[0]))
+
+                if logo_height > original_image.size[1]:
+                    logo_height = original_image.size[1]
+
+                if position == "centre":
+                    logo = logo.resize((logo_width, logo_height))
+
+                    top = (original_image.size[1]//2) - (logo_height//2)
+                    left = (original_image.size[0]//2) - (logo_width//2)
+                    w,h = original_image.size
+                    back_img = Image.new('RGBA', (w,h), 'black')
+                    back_img.paste(logo, (left, top), mask=logo)
+
+                back_img.save("mask.png")
+                
+            except:
+                print("Problem with image")
+
+            original_image = Image.open(image_bytes)
+
+            path = original_image.save("image."+format_1)
+            
+
+
+            img = cv2.imread("image."+format_1)
+            mask = cv2.imread('mask.png',0)
+            dst = cv2.inpaint(img,mask,3,cv2.INPAINT_TELEA)
+
+            cv2.imwrite(os.path.basename(parsed.path)+"."+format_1.lower(),dst)
+            image1 = Image.open(os.path.basename(parsed.path)+"."+format_1.lower())
+            
+        
+        buffer = BytesIO()
+        image1.save(buffer, format=format_1, quality=100)
+        buffer.seek(0)
+
+        return StreamingResponse(buffer, media_type=get_content_type(format_),headers={'Content-Disposition': 'inline; filename="%s"' %(filename,)})
+        
 @app.get("/enhancement")
 async def enhancement(Enhance_image: str):
     """ 
