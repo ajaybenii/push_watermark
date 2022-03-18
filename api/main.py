@@ -446,7 +446,7 @@ async def get_body(URL):
         pass
 
 @app.get("/watermark_removal")
-async def enhancement(watermark_image: str):
+async def removal(watermark_image: str):
     
     parsed = urlparse(watermark_image)
     print(os.path.basename(parsed.path))
