@@ -7,14 +7,14 @@ from enum import Enum
 from io import BytesIO
 from typing import List, Optional
 from urllib.parse import urlparse
-
+from imutils.object_detection import non_max_suppression
 
 
 from fastapi.responses import HTMLResponse
 
 import io
 import PIL
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageEnhance,ImageFilter
 
 import numpy as np
 from PIL import Image, ImageSequence
@@ -29,6 +29,9 @@ from fastapi.responses import StreamingResponse
 SQUARE_YARDS_LOGO = Image.open('api/slogo.png')
 IC_LOGO = Image.open('api/iclogo2.png')
 POSI_LIST = ["centre", "bottom_left", "bottom_right", "bottom"]
+
+
+
 
 app = FastAPI(
     title="sqy-watermark-engine",
@@ -444,6 +447,432 @@ async def get_body(URL):
         print(e)
         #logger.info("Enhancement Unsuccessful")
         pass
+
+@app.get("/all_watermark_removal")
+async def removal(watermark_image: str):
+    
+    parsed = urlparse(watermark_image)
+    print(os.path.basename(parsed.path))
+    
+    response = requests.get(watermark_image)
+    image_bytes = io.BytesIO(response.content)
+    
+    original_image = Image.open(image_bytes)
+
+    
+    format_1 = original_image.format.lower()
+    filename = watermark_image 
+
+    # if filename.lower().startswith(("https://img.staticmb.com/")):
+
+    if filename.lower().endswith((".jpg", ".png", ".jpeg", ".gif", ".webp")):
+        original_image = Image.open(image_bytes)
+        #this function get the format type of input image
+        def get_format(filename):
+            format_ = filename.split(".")[-1]
+            if format_.lower() == "jpg":
+                format_ = "jpeg"
+            elif format_.lower == "webp":
+                format_ = "WebP"
+        
+            return format_
+    
+    
+        #this function for gave the same type of format to output
+        def get_content_type(format_):
+            type_ = "image/jpeg"
+            if format_ == "gif":
+                type_ = "image/gif"
+            elif format_ == "webp":
+                type_ = "image/webp"
+            elif format_ == "png":
+                type_ = "image/png"
+            #print(type_)
+            return type_
+
+        format_ = get_format(filename)#format_ store the type of image by filename
+
+        img_save = original_image.save("detect_img.jpeg")
+        image1 = cv2.imread("detect_img.jpeg",cv2.IMREAD_COLOR) 
+        # im_path = "api/results/result13.jpg"
+        image1 = cv2.resize(image1, (image1.shape[1],image1.shape[0]))
+        ima_org = image1.copy()
+
+        (height1, width1) = image1.shape[:2]
+
+        size = 640 #size must be multiple of 32. Haven't tested with smaller size which can increase speed but might decrease accuracy.
+        (height2, width2) = (size, size)  
+        image2 = cv2.resize(image1, (width2, height2)) 
+        net = cv2.dnn.readNet("frozen_east_text_detection.pb")
+        blob = cv2.dnn.blobFromImage(image2, 1.0, (width2, height2), (103.68, 100.78, 50.94), swapRB=True, crop=False)
+        net.setInput(blob)
+
+        (scores, geometry) = net.forward(["feature_fusion/Conv_7/Sigmoid", "feature_fusion/concat_3"])
+        (rows, cols) = scores.shape[2:4]  # grab the rows and columns from score volume
+        rects = []  # stores the bounding box coordiantes for text regions
+        confidences = []  # stores the probability associated with each bounding box region in rects
+
+        for y in range(rows):
+            scoresdata = scores[0, 0, y]
+            xdata0 = geometry[0, 0, y]
+            xdata1 = geometry[0, 1, y]
+            xdata2 = geometry[0, 2, y]
+            xdata3 = geometry[0, 3, y]
+            angles = geometry[0, 4, y]
+
+            for x in range(cols):
+
+                if scoresdata[x] < 0.5:  # if score is less than min_confidence, ignore
+                    continue
+                # print(scoresdata[x])
+                offsetx = x * 4.0
+                offsety = y * 4.0
+                # EAST detector automatically reduces volume size as it passes through the network
+                # extracting the rotation angle for the prediction and comput ing their sine and cos
+
+                angle = angles[x]
+                cos = np.cos(angle)
+                sin = np.sin(angle)
+
+                h = xdata0[x] + xdata2[x]
+                w = xdata1[x] + xdata3[x]
+                # print(offsetx,offsety,xdata1[x],xdata2[x],cos)
+                endx = int(offsetx + (cos * xdata1[x]) + (sin * xdata2[x]))
+                endy = int(offsety + (sin * xdata1[x]) + (cos * xdata2[x]))
+                startx = int(endx - w)
+                starty = int(endy - h)
+
+                # appending the confidence score and probabilities to list
+                rects.append((startx, starty, endx, endy))
+                confidences.append(scoresdata[x])
+
+        # applying non-maxima suppression to supppress weak and overlapping bounding boxes
+        boxes = non_max_suppression(np.array(rects), probs=confidences)
+
+        iti=[]
+        rW = width1 / float(width2)
+        rH = height1 / float(height2)
+
+
+        bb = []
+
+        for (startx, starty, endx, endy) in boxes:
+            startx = int(startx * rW)
+            starty = int(starty * rH)
+            endx = int(endx * rW)
+            endy = int(endy * rH)
+            cv2.rectangle(image1, (startx, starty), (endx, endy), (255, 0,0), 2)
+            
+            bb.append([startx, starty, endx, endy])
+
+    
+
+        for i in range (len(bb)):
+            
+            im_c = original_image.crop(bb[i])
+            b_im = im_c.filter(ImageFilter.GaussianBlur(radius=12))
+            original_image.paste(b_im,bb[i])
+            
+            i+=1
+        # image.show()
+
+        filename1 = (os.path.basename(parsed.path))
+        buffer = BytesIO()
+        original_image.save(buffer, format=format_, quality=100)
+        buffer.seek(0)
+        print(len(bb))
+        if (len(bb) <= 0):
+
+            if (original_image):
+
+                image_logo = '99ax.jpg' # logo path
+                logo = Image.open(image_logo).convert("RGBA")
+
+                width_percentage = 0.3
+                position = "centre"
+
+                #create mask of every image according to image size 
+                try:
+                    logo_width = int(original_image.size[0]*width_percentage)
+                    logo_height = int(logo.size[1]*(logo_width/logo.size[0]))
+
+                    if logo_height > original_image.size[1]:
+                        logo_height = original_image.size[1]
+
+                    if position == "centre":
+                        logo = logo.resize((logo_width, logo_height))
+
+                        top = (original_image.size[1]//2) - (logo_height//2)
+                        left = (original_image.size[0]//2) - (logo_width//2)
+                        w,h = original_image.size
+                        back_img = Image.new('RGBA', (w,h), 'black')
+                        back_img.paste(logo, (left, top), mask=logo)
+
+                    back_img.save("mask.png")
+                    
+                except:
+                    print("Problem with image")
+
+                original_image = Image.open(image_bytes)
+                original_image.format.lower()
+                path = original_image.save("image."+format_1)
+                
+
+
+                img = cv2.imread("image."+format_1)
+                mask = cv2.imread('mask.png',0)
+                dst = cv2.inpaint(img,mask,3,cv2.INPAINT_TELEA)
+
+                cv2.imwrite(os.path.basename(parsed.path),dst)
+                image1 = Image.open(os.path.basename(parsed.path))
+                
+            filename1 = (os.path.basename(parsed.path))
+            buffer = BytesIO()
+            
+            image1.save(buffer, format=format_, quality=100)
+            buffer.seek(0)
+
+            return StreamingResponse(buffer, media_type=get_content_type(format_),headers={'Content-Disposition': 'inline; filename="%s"' %(filename1,)})
+
+
+
+        return StreamingResponse(buffer, media_type=get_content_type(format_),headers={'Content-Disposition': 'inline; filename="%s"' %(filename1,)})
+
+    else:
+        original_image = Image.open(image_bytes)
+        format_1 = original_image.format.lower()
+    
+        #this function for gave the same type of format to output
+        def get_content_type(format_):
+            type_ = "image/jpeg"
+            if format_ == "gif":
+                type_ = "image/gif"
+            elif format_ == "webp":
+                type_ = "image/webp"
+            elif format_ == "png":
+                type_ = "image/png"
+            #print(type_)
+            return type_
+
+        format_ = get_format(filename)#here format_ store the type of image by filename
+
+        if (original_image):
+
+            image_logo = '99ax.jpg' # logo path
+            logo = Image.open(image_logo).convert("RGBA")
+
+            width_percentage = 0.3
+            position = "centre"
+
+            #Here we create mask of every image according to image size 
+            try:
+                logo_width = int(original_image.size[0]*width_percentage)
+                logo_height = int(logo.size[1]*(logo_width/logo.size[0]))
+
+                if logo_height > original_image.size[1]:
+                    logo_height = original_image.size[1]
+
+                if position == "centre":
+                    logo = logo.resize((logo_width, logo_height))
+
+                    top = (original_image.size[1]//2) - (logo_height//2)
+                    left = (original_image.size[0]//2) - (logo_width//2)
+                    w,h = original_image.size
+                    back_img = Image.new('RGBA', (w,h), 'black')
+                    back_img.paste(logo, (left, top), mask=logo)
+
+                back_img.save("mask.png")
+                
+            except:
+                print("Problem with image")
+
+            original_image = Image.open(image_bytes)
+
+            original_image.save("image."+format_1)
+            
+
+
+            img = cv2.imread("image."+format_1)
+            mask = cv2.imread('mask.png',0)
+            dst = cv2.inpaint(img,mask,3,cv2.INPAINT_TELEA)
+
+            cv2.imwrite(os.path.basename(parsed.path)+"."+format_1.lower(),dst)
+            image1 = Image.open(os.path.basename(parsed.path)+"."+format_1.lower())
+            
+        
+        buffer = BytesIO()
+        image1.save(buffer, format=format_1, quality=100)
+        filenam = os.path.basename(parsed.path)
+        print(filenam,"filnm")
+        buffer.seek(0)
+
+        return StreamingResponse(buffer, media_type=get_content_type(format_),headers={'Content-Disposition': 'inline; filename="%s"' %(filenam,)})
+
+@app.get("/watermark_removal")
+async def removal(watermark_image: str):
+    
+    parsed = urlparse(watermark_image)
+    print(os.path.basename(parsed.path))
+    
+    response = requests.get(watermark_image)
+    image_bytes = io.BytesIO(response.content)
+    
+    original_image = Image.open(image_bytes)
+
+    
+    format_1 = original_image.format.lower()
+    filename = watermark_image 
+
+    # if filename.lower().startswith(("https://img.staticmb.com/")):
+
+    if filename.lower().endswith((".jpg", ".png", ".jpeg", ".gif", ".webp")):
+        original_image = Image.open(image_bytes)
+        #this function get the format type of input image
+        def get_format(filename):
+            format_ = filename.split(".")[-1]
+            if format_.lower() == "jpg":
+                format_ = "jpeg"
+            elif format_.lower == "webp":
+                format_ = "WebP"
+        
+            return format_
+    
+    
+        #this function for gave the same type of format to output
+        def get_content_type(format_):
+            type_ = "image/jpeg"
+            if format_ == "gif":
+                type_ = "image/gif"
+            elif format_ == "webp":
+                type_ = "image/webp"
+            elif format_ == "png":
+                type_ = "image/png"
+            #print(type_)
+            return type_
+
+        format_ = get_format(filename)#format_ store the type of image by filename
+
+        
+        if (original_image):
+
+            image_logo = '99ax.jpg' # logo path
+            logo = Image.open(image_logo).convert("RGBA")
+
+            width_percentage = 0.17
+            position = "centre"
+
+            #create mask of every image according to image size 
+            try:
+                logo_width = int(original_image.size[0]*width_percentage)
+                logo_height = int(logo.size[1]*(logo_width/logo.size[0]))
+
+                if logo_height > original_image.size[1]:
+                    logo_height = original_image.size[1]
+
+                if position == "centre":
+                    logo = logo.resize((logo_width, logo_height))
+
+                    top = (original_image.size[1]//2) - (logo_height//2)
+                    left = (original_image.size[0]//2) - (logo_width//2)
+                    w,h = original_image.size
+                    back_img = Image.new('RGBA', (w,h), 'black')
+                    back_img.paste(logo, (left, top), mask=logo)
+
+                back_img.save("mask.png")
+                
+            except:
+                print("Problem with image")
+
+            original_image = Image.open(image_bytes)
+            original_image.format.lower()
+            path = original_image.save("image."+format_1)
+            
+
+
+            img = cv2.imread("image."+format_1)
+            mask = cv2.imread('mask.png',0)
+            dst = cv2.inpaint(img,mask,3,cv2.INPAINT_TELEA)
+
+            cv2.imwrite(os.path.basename(parsed.path),dst)
+            image1 = Image.open(os.path.basename(parsed.path))
+            
+        filename1 = (os.path.basename(parsed.path))
+        buffer = BytesIO()
+        image1.save(buffer, format=format_, quality=100)
+        buffer.seek(0)
+
+        return StreamingResponse(buffer, media_type=get_content_type(format_),headers={'Content-Disposition': 'inline; filename="%s"' %(filename1,)})
+
+    else:
+        original_image = Image.open(image_bytes)
+        format_1 = original_image.format.lower()
+    
+        #this function for gave the same type of format to output
+        def get_content_type(format_):
+            type_ = "image/jpeg"
+            if format_ == "gif":
+                type_ = "image/gif"
+            elif format_ == "webp":
+                type_ = "image/webp"
+            elif format_ == "png":
+                type_ = "image/png"
+            #print(type_)
+            return type_
+
+        format_ = get_format(filename)#here format_ store the type of image by filename
+
+        if (original_image):
+
+            image_logo = '99ax.jpg' # logo path
+            logo = Image.open(image_logo).convert("RGBA")
+
+            width_percentage = 0.3
+            position = "centre"
+
+            #Here we create mask of every image according to image size 
+            try:
+                logo_width = int(original_image.size[0]*width_percentage)
+                logo_height = int(logo.size[1]*(logo_width/logo.size[0]))
+
+                if logo_height > original_image.size[1]:
+                    logo_height = original_image.size[1]
+
+                if position == "centre":
+                    logo = logo.resize((logo_width, logo_height))
+
+                    top = (original_image.size[1]//2) - (logo_height//2)
+                    left = (original_image.size[0]//2) - (logo_width//2)
+                    w,h = original_image.size
+                    back_img = Image.new('RGBA', (w,h), 'black')
+                    back_img.paste(logo, (left, top), mask=logo)
+
+                back_img.save("mask.png")
+                
+            except:
+                print("Problem with image")
+
+            original_image = Image.open(image_bytes)
+
+            original_image.save("image."+format_1)
+            
+
+
+            img = cv2.imread("image."+format_1)
+            mask = cv2.imread('mask.png',0)
+            dst = cv2.inpaint(img,mask,3,cv2.INPAINT_TELEA)
+
+            cv2.imwrite(os.path.basename(parsed.path)+"."+format_1.lower(),dst)
+            image1 = Image.open(os.path.basename(parsed.path)+"."+format_1.lower())
+            
+        
+        buffer = BytesIO()
+        image1.save(buffer, format=format_1, quality=100)
+        filenam = os.path.basename(parsed.path)
+        print(filenam,"filnm")
+        buffer.seek(0)
+
+        return StreamingResponse(buffer, media_type=get_content_type(format_),headers={'Content-Disposition': 'inline; filename="%s"' %(filenam,)})
+
 
 @app.get("/watermark_removal")
 async def removal(watermark_image: str):
