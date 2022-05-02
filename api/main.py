@@ -570,7 +570,7 @@ async def removal(watermark_image: str):
         for i in range (len(bb)):
             
             im_c = original_image.crop(bb[i])
-            b_im = im_c.filter(ImageFilter.GaussianBlur(radius=12))
+            b_im = im_c.filter(ImageFilter.GaussianBlur(radius=30))
             original_image.paste(b_im,bb[i])
             
             i+=1
